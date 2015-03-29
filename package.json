@@ -1,0 +1,59 @@
+{
+  "name": "react-helix",
+  "version": "1.0.0",
+  "description": "A minimal library for Flux-like architecture.",
+  "main": "lib/index.js",
+  "files": [
+    "dist",
+    "lib"
+  ],
+  "scripts": {
+    "clean": "rimraf lib dist",
+    "lint": "eslint src",
+    "build": "npm-run-all clean lint build:lib build:dist build:dist-min",
+    "build:lib": "babel src --out-dir lib --source-maps-inline",
+    "build:dist": "mkdirp dist && browserify lib/index.js --debug --transform [envify --NODE_ENV=development] --external react --standalone react-helix > dist/react-helix.js",
+    "build:dist-min": "mkdirp dist && browserify lib/index.js --transform [envify --NODE_ENV=production] --external react --standalone react-helix | uglifyjs - --compress --mangle > dist/react-helix.min.js",
+    "test": "npm-run-all clean lint build:lib test:karma",
+    "test:karma": "karma start karma.conf.js --single-run",
+    "testing": "npm run clean && npm-run-all --parallel testing:build testing:karma",
+    "testing:build": "babel src --out-dir lib --watch",
+    "testing:karma": "karma start karma.conf.js --auto-watch"
+  },
+  "devDependencies": {
+    "babel": "^4.7.16",
+    "babelify": "^5.0.4",
+    "browserify": "^9.0.3",
+    "envify": "^3.4.0",
+    "eslint": "^0.18.0",
+    "eslint-plugin-react": "^1.6.1",
+    "espowerify": "^0.10.0",
+    "karma": "^0.12.31",
+    "karma-browserify": "^4.0.0",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-ie-launcher": "^0.1.5",
+    "karma-mocha": "^0.1.10",
+    "mkdirp": "^0.5.0",
+    "mocha": "^2.2.1",
+    "npm-run-all": "^1.0.2",
+    "power-assert": "^0.10.2",
+    "react": "^0.13.1",
+    "rimraf": "^2.3.2",
+    "uglify-js": "^2.4.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mysticatea/react-helix.git"
+  },
+  "keywords": [
+    "react",
+    "flux"
+  ],
+  "author": "Toru Nagashima",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mysticatea/react-helix/issues"
+  },
+  "homepage": "https://github.com/mysticatea/react-helix"
+}

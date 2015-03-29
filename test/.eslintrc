@@ -1,0 +1,8 @@
+{
+  "env": {
+    "mocha": true
+  },
+  "rules": {
+    "react/no-multi-comp": 0
+  }
+}
