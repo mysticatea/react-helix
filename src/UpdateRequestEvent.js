@@ -1,3 +1,6 @@
+// There are several cross-callings in this file.
+/*eslint no-use-before-define:[2,"nofunc"]*/
+
 function invariant(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -19,9 +22,21 @@ function isGenerator(x) {
          typeof x.throw === "function";
 }
 
+function callAndSet(component, func, resolve, reject) {
+  let result;
+  try {
+    result = func(component.storeValue);
+  }
+  catch (error) {
+    reject(error);
+    return;
+  }
+  setUnified(component, result, resolve, reject);
+}
+
 // Process a generator. ping-pong states.
 function advanceToEnd(component, generator, resolve, reject) {
-  onFulfilled(undefined); //eslint-disable-line no-use-before-define
+  onFulfilled(undefined);
 
   function onFulfilled(storeValue) {
     let ret;
@@ -33,7 +48,7 @@ function advanceToEnd(component, generator, resolve, reject) {
       return;
     }
 
-    next(ret); //eslint-disable-line no-use-before-define
+    next(ret);
   }
 
   function onRejected(err) {
@@ -46,59 +61,46 @@ function advanceToEnd(component, generator, resolve, reject) {
       return;
     }
 
-    next(ret); //eslint-disable-line no-use-before-define
+    next(ret);
   }
 
   function next(ret) {
     if (ret.done) {
-      if (ret.value === undefined) {
-        resolve(component.storeValue);
-      }
-      else {
-        setUnified(component, ret.value, resolve, reject);
-      }
+      setUnified(component, ret.value, resolve, reject);
     }
     else {
-      if (ret.value === undefined) {
-        onFulfilled(component.storeValue);
-      }
-      else {
-        setUnified(component, ret.value, onFulfilled, onRejected);
-      }
+      setUnified(component, ret.value, onFulfilled, onRejected);
     }
   }
 }
 
 function setUnified(component, value, resolve, reject) {
+  // Ignore undefined.
+  //   e.g. lonly yield, no-return promises.
   if (value === undefined) {
     resolve(component.storeValue);
   }
+  // If value is a function, call it and set the result.
+  // In this case, give the current store value to the first argument.
   else if (isFunction(value)) {
-    let result;
-    try {
-      result = value(component.storeValue);
-    }
-    catch (error) {
-      reject(error);
-      return;
-    }
-    setUnified(component, result, resolve, reject);
+    callAndSet(component, value, resolve, reject);
   }
+  // If value is a Promise, wait for fulfilled and set the result.
   else if (isThenable(value)) {
     value.then(
       result => setUnified(component, result, resolve, reject),
       reject
     );
   }
+  // If value is a generator, advanced until done.
+  // While advancing, set each yielded value.
   else if (isGenerator(value)) {
     advanceToEnd(component, value, resolve, reject);
   }
+  // Otherwise, set the value.
   else {
     component.setStoreValue(value, resolve);
   }
-}
-
-function doNothing() {
 }
 
 function printError(error) {
@@ -127,12 +129,10 @@ export function createUpdateRequestEvent(action, args, callback) {
     invariant(callback == null || typeof callback === "function",
               "callback should be a function or nothing.");
 
-    callback = callback || printError;
+    if (callback == null) {
+      callback = printError;
+    }
   }
-  else if (callback == null) {
-    callback = doNothing;
-  }
-
 
   let event = document.createEvent("CustomEvent");
   let handled = false;
@@ -142,17 +142,19 @@ export function createUpdateRequestEvent(action, args, callback) {
     action: {
       value: action,
       configurable: true,
-      enumerable: true
+      enumerable: true,
+      writable: true
     },
 
     arguments: {
       value: args,
       configurable: true,
-      enumerable: true
+      enumerable: true,
+      writable: true
     },
 
     // This is internal method, called from StoreMixin.
-    applyTo: {value: function apply(component) {
+    applyTo: {value: function applyTo(component) {
       if (process.env.NODE_ENV !== "production") {
         const get = Object.getOwnPropertyDescriptor(component, "storeValue");
         const set = Object.getOwnPropertyDescriptor(component, "setStoreValue");
@@ -174,14 +176,16 @@ export function createUpdateRequestEvent(action, args, callback) {
         value = this.action(component.storeValue, ...this.arguments);
       }
       catch (error) {
-        callback(error);
+        if (callback != null) {
+          callback(error);
+        }
         return;
       }
 
       setUnified(
         component,
         value,
-        result => callback(null, result),
+        result => callback && callback(null, result),
         callback);
     }},
 
@@ -189,7 +193,9 @@ export function createUpdateRequestEvent(action, args, callback) {
     rejectIfNotHandled: {value: function rejectIfNotHandled() {
       if (handled === false) {
         handled = true;
-        callback(new Error("not handled"));
+        if (callback != null) {
+          callback(new Error("not handled"));
+        }
       }
     }}
   });

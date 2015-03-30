@@ -9,8 +9,10 @@ function invariant(condition, message) {
 
 export default {
   validate(component) {
-    const node = React.findDOMNode(component);
-    invariant(node != null, "ActionerMixin: requires to be rendered.");
+    if (process.env.NODE_ENV !== "production") {
+      const node = React.findDOMNode(component);
+      invariant(node != null, "ActionerMixin: requires to be rendered.");
+    }
   },
 
   requestUpdate(component, action, args, callback) {

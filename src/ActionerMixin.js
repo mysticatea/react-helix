@@ -14,9 +14,9 @@ export default {
   },
 
   requestUpdate(action /* [, ...args] [, callback] */) {
-    let args = [];
+    const args = [];
+    const lastIndex = arguments.length - 1;
     let callback;
-    let lastIndex = arguments.length - 1;
     if (lastIndex >= 1) {
       for (let i = 1; i < lastIndex; ++i) {
         args.push(arguments[i]);
