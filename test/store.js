@@ -3,6 +3,10 @@ import React from "react";
 import {StoreComponent, StoreMixin} from "../lib/index";
 import {EVENT_NAME, createUpdateRequestEvent} from "../lib/UpdateRequestEvent";
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function increaseValue(obj, amount1, amount2) {
   let value = (obj && obj.value) || 0;
   if (amount1 !== undefined) {
@@ -18,6 +22,31 @@ function increaseValue(obj, amount1, amount2) {
   }
 
   return {value};
+}
+
+function increaseValueLater(_, amount) {
+  return delay(100).then(() => {
+    return obj => {
+      let value = (obj && obj.value) || 0;
+      value += amount;
+      return {value};
+    };
+  });
+}
+
+function* increaseValue3times(obj, amount) {
+  obj = yield increaseValue(obj, amount);
+  obj = yield increaseValue(obj, amount);
+  yield increaseValue(obj, amount);
+}
+
+function* multiplyValue3timesSlowly(_, k) {
+  yield delay(100);
+  yield obj => ({value: obj.value * k});
+  yield delay(100);
+  yield obj => ({value: obj.value * k});
+  yield delay(100);
+  yield obj => ({value: obj.value * k});
 }
 
 function requestUpdate(element, action, args, callback) {
@@ -98,17 +127,45 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("with a callback.", done => {
-        requestUpdate(target.refs.child, increaseValue, [], () => {
+        requestUpdate(target.refs.child, increaseValue, [], err => {
+          assert(err === null);
           assert(target.state.value === 777);
           done();
         });
       });
 
       it("with a callback and arguments.", done => {
-        requestUpdate(target.refs.child, increaseValue, [1], () => {
+        requestUpdate(target.refs.child, increaseValue, [1], err => {
+          assert(err === null);
           assert(target.state.value === 1);
           done();
         });
+      });
+
+      it("action should be able to return promise.", done => {
+        requestUpdate(target.refs.child, increaseValueLater, [3], err => {
+          assert(err === null);
+          assert(target.state.value === 10);
+          done();
+        });
+        requestUpdate(target.refs.child, increaseValue, [7]);
+      });
+
+      it("action should be able to return generator.", done => {
+        requestUpdate(target.refs.child, increaseValue3times, [3], err => {
+          assert(err === null);
+          assert(target.state.value === 9);
+          done();
+        });
+      });
+
+      it("action should be able to conbinate promise and generator.", done => {
+        requestUpdate(target.refs.child, multiplyValue3timesSlowly, [2], err => {
+          assert(err === null);
+          assert(target.state.value === 56);
+          done();
+        });
+        requestUpdate(target.refs.child, increaseValue, [7]);
       });
     });
   });

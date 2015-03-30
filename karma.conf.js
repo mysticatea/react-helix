@@ -3,6 +3,7 @@ module.exports = function(config) {
     basePath: "",
     frameworks: ["browserify", "mocha"],
     files: [
+      "node_modules/babel/browser-polyfill.js",
       "test/*.js"
     ],
     browsers: ["Chrome", "Firefox", "IE"],

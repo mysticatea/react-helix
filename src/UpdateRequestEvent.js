@@ -4,6 +4,10 @@ function invariant(condition, message) {
   }
 }
 
+function isFunction(x) {
+  return typeof x === "function";
+}
+
 function isThenable(x) {
   return typeof x === "object" &&
          typeof x.then === "function";
@@ -66,16 +70,23 @@ function advanceToEnd(component, generator, resolve, reject) {
 }
 
 function setUnified(component, value, resolve, reject) {
-  if (isThenable(value)) {
+  if (value === undefined) {
+    resolve(component.storeValue);
+  }
+  else if (isFunction(value)) {
+    let result;
+    try {
+      result = value(component.storeValue);
+    }
+    catch (error) {
+      reject(error);
+      return;
+    }
+    setUnified(component, result, resolve, reject);
+  }
+  else if (isThenable(value)) {
     value.then(
-      result => {
-        if (result === undefined) {
-          resolve(component.storeValue);
-        }
-        else {
-          component.setStoreValue(result, resolve);
-        }
-      },
+      result => setUnified(component, result, resolve, reject),
       reject
     );
   }
@@ -145,13 +156,13 @@ export function createUpdateRequestEvent(action, args, callback) {
       if (process.env.NODE_ENV !== "production") {
         const get = Object.getOwnPropertyDescriptor(component, "storeValue");
         const set = Object.getOwnPropertyDescriptor(component, "setStoreValue");
-        invariant(typeof get.get === "function",
+        invariant(isFunction(get.get),
                   "component.storeValue should be a getter property.");
-        invariant(typeof set.value === "function",
+        invariant(isFunction(set.value),
                   "component.setStoreValue should be a function.");
         invariant(handled === false,
                   `this ${EVENT_NAME} event had been applied already.`);
-        invariant(typeof this.action === "function",
+        invariant(isFunction(this.action),
                   "this.action should be a function.");
         invariant(Array.isArray(this.arguments),
                   "this.arguments should be an array.");
