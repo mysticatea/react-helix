@@ -8,12 +8,12 @@ function invariant(condition, message) {
 }
 
 //------------------------------------------------------------------------------
-function parseStoreValuePath(value) {
+function parseStageValuePath(value) {
   return (typeof value === "string" ? value.split(".").filter(Boolean) : []);
 }
 
 //------------------------------------------------------------------------------
-function defineGetStoreValue(parts) {
+function defineGetStageValue(parts) {
   let body;
   switch (parts.length) {
     case 0:
@@ -39,8 +39,8 @@ return tmp${lastIndex} && tmp${lastIndex}.${parts[lastIndex]};`;
 }
 
 //------------------------------------------------------------------------------
-function defineSetStoreValue(parts) {
-  let body = `var cb2 = cb && function() { cb(this.storeValue); }.bind(this);`;
+function defineSetStageValue(parts) {
+  let body = `var cb2 = cb && function() { cb(this.stageValue); }.bind(this);`;
 
   switch (parts.length) {
     case 0:
@@ -80,48 +80,48 @@ function handleUpdateRequest(event) {
 
 //------------------------------------------------------------------------------
 export default {
-  initialize(component, storeValuePath) {
-    if (component.storeMixinInitialized) {
+  initialize(component, stageValuePath) {
+    if (component.stageMixinInitialized) {
       return;
     }
 
-    const parts = parseStoreValuePath(storeValuePath);
-    const getStoreValue = defineGetStoreValue(parts);
+    const parts = parseStageValuePath(stageValuePath);
+    const getStageValue = defineGetStageValue(parts);
 
     if (process.env.NODE_ENV !== "production") {
-      invariant(storeValuePath == null || typeof storeValuePath === "string",
-                "StoreMixin: storeValuePath should be a string.");
+      invariant(stageValuePath == null || typeof stageValuePath === "string",
+                "StageMixin: stageValuePath should be a string.");
 
       try {
-        getStoreValue.call(component);
+        getStageValue.call(component);
       }
       catch (cause) {
         let err = new Error(
-          `StoreMixin: storeValuePath is invalid (${storeValuePath}).`);
+          `StageMixin: stageValuePath is invalid (${stageValuePath}).`);
         err.cause = cause;
         throw err;
       }
     }
 
     Object.defineProperties(component, {
-      storeMixinInitialized: {
+      stageMixinInitialized: {
         value: true,
         configurable: true
       },
 
-      storeMixinHandleUpdateRequest: {
+      stageMixinHandleUpdateRequest: {
         value: handleUpdateRequest.bind(component),
         configurable: true
       },
 
-      storeValue: {
-        get: getStoreValue,
+      stageValue: {
+        get: getStageValue,
         configurable: true,
         enumerable: true
       },
 
-      setStoreValue: {
-        value: defineSetStoreValue(parts).bind(component),
+      setStageValue: {
+        value: defineSetStageValue(parts).bind(component),
         configurable: true
       }
     });
@@ -130,9 +130,9 @@ export default {
   setupHandler(component) {
     const node = React.findDOMNode(component);
     if (process.env.NODE_ENV !== "production") {
-      invariant(node != null, "StoreMixin: requires to be rendered.");
+      invariant(node != null, "StageMixin: requires to be rendered.");
     }
-    node.addEventListener(EVENT_NAME, component.storeMixinHandleUpdateRequest);
+    node.addEventListener(EVENT_NAME, component.stageMixinHandleUpdateRequest);
   },
 
   teardownHandler(component) {
@@ -140,7 +140,7 @@ export default {
     if (node != null) {
       node.removeEventListener(
         EVENT_NAME,
-        component.storeMixinHandleUpdateRequest);
+        component.stageMixinHandleUpdateRequest);
     }
   }
 };

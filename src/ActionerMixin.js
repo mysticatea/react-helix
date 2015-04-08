@@ -1,4 +1,4 @@
-import Impl from "./actioner-impl";
+import Impl from "./agent-impl";
 
 export default {
   componentDidMount() {
@@ -13,7 +13,7 @@ export default {
     }
   },
 
-  requestUpdate(action /* [, ...args] [, callback] */) {
+  requestTo(action /* [, ...args] [, callback] */) {
     const args = [];
     const lastIndex = arguments.length - 1;
     let callback;
@@ -28,6 +28,6 @@ export default {
         callback = arguments[lastIndex];
       }
     }
-    return Impl.requestUpdate(this, action, args, callback);
+    return Impl.sendAction(this, action, args, callback);
   }
 };

@@ -25,7 +25,7 @@ function isGenerator(x) {
 function callAndSet(component, func, resolve, reject) {
   let result;
   try {
-    result = func(component.storeValue);
+    result = func(component.stageValue);
   }
   catch (error) {
     reject(error);
@@ -38,10 +38,10 @@ function callAndSet(component, func, resolve, reject) {
 function advanceToEnd(component, generator, resolve, reject) {
   onFulfilled(undefined);
 
-  function onFulfilled(storeValue) {
+  function onFulfilled(stageValue) {
     let ret;
     try {
-      ret = generator.next(storeValue);
+      ret = generator.next(stageValue);
     }
     catch (err) {
       reject(err);
@@ -78,10 +78,10 @@ function setUnified(component, value, resolve, reject) {
   // Ignore undefined.
   //   e.g. lonly yield, no-return promises.
   if (value === undefined) {
-    resolve(component.storeValue);
+    resolve(component.stageValue);
   }
   // If value is a function, call it and set the result.
-  // In this case, give the current store value to the first argument.
+  // In this case, give the current stage value to the first argument.
   else if (isFunction(value)) {
     callAndSet(component, value, resolve, reject);
   }
@@ -99,7 +99,7 @@ function setUnified(component, value, resolve, reject) {
   }
   // Otherwise, set the value.
   else {
-    component.setStoreValue(value, resolve);
+    component.setStageValue(value, resolve);
   }
 }
 
@@ -111,18 +111,18 @@ function printError(error) {
 }
 
 /**
- * The event name for `UpdateRequestEvent`.
+ * The event name for `SentActionEvent`.
  * @type {string}
  */
-export const EVENT_NAME = "helix-requests-update";
+export const EVENT_NAME = "helix-sent-action";
 
 /**
  * @param action {function} - A function to transform the state.
  * @param args {any[]} - Information for action.  This value is given to the
  *   second argument of action.
- * @return {UpdateRequestEvent} - The created event object.
+ * @return {SentActionEvent} - The created event object.
  */
-export function createUpdateRequestEvent(action, args, callback) {
+export function createSentActionEvent(action, args, callback) {
   if (process.env.NODE_ENV !== "production") {
     invariant(typeof action === "function", "action should be a function.");
     invariant(Array.isArray(args), "args should be an array.");
@@ -153,15 +153,15 @@ export function createUpdateRequestEvent(action, args, callback) {
       writable: true
     },
 
-    // This is internal method, called from StoreMixin.
+    // This is internal method, called from StageMixin.
     applyTo: {value: function applyTo(component) {
       if (process.env.NODE_ENV !== "production") {
-        const get = Object.getOwnPropertyDescriptor(component, "storeValue");
-        const set = Object.getOwnPropertyDescriptor(component, "setStoreValue");
+        const get = Object.getOwnPropertyDescriptor(component, "stageValue");
+        const set = Object.getOwnPropertyDescriptor(component, "setStageValue");
         invariant(isFunction(get.get),
-                  "component.storeValue should be a getter property.");
+                  "component.stageValue should be a getter property.");
         invariant(isFunction(set.value),
-                  "component.setStoreValue should be a function.");
+                  "component.setStageValue should be a function.");
         invariant(handled === false,
                   `this ${EVENT_NAME} event had been applied already.`);
         invariant(isFunction(this.action),
@@ -173,7 +173,7 @@ export function createUpdateRequestEvent(action, args, callback) {
 
       let value;
       try {
-        value = this.action(component.storeValue, ...this.arguments);
+        value = this.action(component.stageValue, ...this.arguments);
       }
       catch (error) {
         if (callback != null) {
@@ -189,7 +189,7 @@ export function createUpdateRequestEvent(action, args, callback) {
         callback);
     }},
 
-    // This is internal method, called from ActionerMixin.
+    // This is internal method, called from AgentMixin.
     rejectIfNotHandled: {value: function rejectIfNotHandled() {
       if (handled === false) {
         handled = true;

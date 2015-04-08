@@ -1,5 +1,5 @@
 import React from "react";
-import {createUpdateRequestEvent} from "./UpdateRequestEvent";
+import {createSentActionEvent} from "./UpdateRequestEvent";
 
 function invariant(condition, message) {
   if (!condition) {
@@ -11,16 +11,16 @@ export default {
   validate(component) {
     if (process.env.NODE_ENV !== "production") {
       const node = React.findDOMNode(component);
-      invariant(node != null, "ActionerMixin: requires to be rendered.");
+      invariant(node != null, "AgentMixin: requires to be rendered.");
     }
   },
 
-  requestUpdate(component, action, args, callback) {
+  sendAction(component, action, args, callback) {
     const node = React.findDOMNode(component);
-    const event = createUpdateRequestEvent(action, args, callback);
+    const event = createSentActionEvent(action, args, callback);
 
     if (process.env.NODE_ENV !== "production") {
-      invariant(node != null, "ActionerMixin: requires to be rendered.");
+      invariant(node != null, "AgentMixin: requires to be rendered.");
     }
     node.dispatchEvent(event);
     event.rejectIfNotHandled();

@@ -1,7 +1,7 @@
 import assert from "power-assert";
 import React from "react";
-import {ActionerComponent, ActionerMixin} from "../lib/index";
-import {EVENT_NAME} from "../lib/UpdateRequestEvent";
+import {AgentComponent, AgentMixin} from "../lib/index";
+import {EVENT_NAME} from "../lib/SentActionEvent";
 
 function increaseValue(obj, amount) {
   return {value: (obj.value || 0) + amount};
@@ -123,14 +123,14 @@ function doTest(Empty, Simple) {
   });
 }
 
-describe("ActionerComponent", () => {
+describe("AgentComponent", () => {
   doTest(
-    class Empty extends ActionerComponent {
+    class Empty extends AgentComponent {
       render() {
         return null;
       }
     },
-    class Simple extends ActionerComponent {
+    class Simple extends AgentComponent {
       constructor(props) {
         super(props);
       }
@@ -142,11 +142,11 @@ describe("ActionerComponent", () => {
   );
 });
 
-describe("ActionerMixin", () => {
+describe("AgentMixin", () => {
   doTest(
     React.createClass({
       displayName: "Empty",
-      mixins: [ActionerMixin],
+      mixins: [AgentMixin],
 
       render() {
         return null;
@@ -154,7 +154,7 @@ describe("ActionerMixin", () => {
     }),
     React.createClass({
       displayName: "Simple",
-      mixins: [ActionerMixin],
+      mixins: [AgentMixin],
 
       render() {
         return <div>Hello!</div>;

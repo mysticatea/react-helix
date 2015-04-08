@@ -1,7 +1,7 @@
 import React from "react";
-import Impl from "./actioner-impl";
+import Impl from "./agent-impl";
 
-export default class ActionerComponent extends React.Component {
+export default class AgentComponent extends React.Component {
   componentDidMount() {
     if (process.env.NODE_ENV !== "production") {
       Impl.validate(this);
@@ -14,7 +14,7 @@ export default class ActionerComponent extends React.Component {
     }
   }
 
-  requestUpdate(action /* [, ...args] [, callback] */) {
+  requestTo(action /* [, ...args] [, callback] */) {
     const args = [];
     const lastIndex = arguments.length - 1;
     let callback;
@@ -29,6 +29,6 @@ export default class ActionerComponent extends React.Component {
         callback = arguments[lastIndex];
       }
     }
-    return Impl.requestUpdate(this, action, args, callback);
+    return Impl.sendAction(this, action, args, callback);
   }
 }

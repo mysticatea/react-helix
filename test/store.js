@@ -1,7 +1,7 @@
 import assert from "power-assert";
 import React from "react";
-import {StoreComponent, StoreMixin} from "../lib/index";
-import {EVENT_NAME, createUpdateRequestEvent} from "../lib/UpdateRequestEvent";
+import {StageComponent, StageMixin} from "../lib/index";
+import {EVENT_NAME, createSentActionEvent} from "../lib/SentActionEvent";
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -51,7 +51,7 @@ function* multiplyValue3timesSlowly(_, k) {
 
 function requestUpdate(element, action, args, callback) {
   const node = React.findDOMNode(element);
-  const event = createUpdateRequestEvent(action, args, callback);
+  const event = createSentActionEvent(action, args, callback);
   node.dispatchEvent(event);
   event.rejectIfNotHandled();
 }
@@ -92,13 +92,13 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       container = null;
     });
 
-    it("should have \"storeValue\" getter property.", () => {
-      const descriptor = Object.getOwnPropertyDescriptor(target, "storeValue");
+    it("should have \"stageValue\" getter property.", () => {
+      const descriptor = Object.getOwnPropertyDescriptor(target, "stageValue");
       assert(typeof descriptor.get === "function");
     });
 
-    it("should have \"setStoreValue\" method.", () => {
-      assert(typeof target.setStoreValue === "function");
+    it("should have \"setStageValue\" method.", () => {
+      assert(typeof target.setStageValue === "function");
     });
 
     describe("should handle " + EVENT_NAME + " events.", () => {
@@ -170,7 +170,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
     });
   });
 
-  describe("if rendered, if has store value path,", () => {
+  describe("if rendered, if has stage value path,", () => {
     let container, target;
 
     beforeEach(() => {
@@ -187,16 +187,16 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
 
     it("should handle " + EVENT_NAME + " events.", done => {
       requestUpdate(target.refs.child, increaseValue, [1], () => {
-        assert(target.state.store.value === 1);
+        assert(target.state.stage.value === 1);
         requestUpdate(target.refs.child, increaseValue, [2], () => {
-          assert(target.state.store.value === 3);
+          assert(target.state.stage.value === 3);
           done();
         });
       });
     });
   });
 
-  describe("if rendered, if has deep store value path,", () => {
+  describe("if rendered, if has deep stage value path,", () => {
     let container, target;
 
     beforeEach(() => {
@@ -223,14 +223,14 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
   });
 }
 
-describe("StoreComponent", () => {
+describe("StageComponent", () => {
   doTest(
-    class Empty extends StoreComponent {
+    class Empty extends StageComponent {
       render() {
         return null;
       }
     },
-    class Simple extends StoreComponent {
+    class Simple extends StageComponent {
       constructor(props) {
         super(props);
         this.state = {value: 0};
@@ -240,16 +240,16 @@ describe("StoreComponent", () => {
         return <div><span ref="child">Hello!</span></div>;
       }
     },
-    class WithValuePath extends StoreComponent {
+    class WithValuePath extends StageComponent {
       constructor(props) {
-        super(props, "store");
+        super(props, "stage");
       }
 
       render() {
         return <div><span ref="child">Hello!</span></div>;
       }
     },
-    class WithValuePath2 extends StoreComponent {
+    class WithValuePath2 extends StageComponent {
       constructor(props) {
         super(props, "s.t.o.r.e");
       }
@@ -261,11 +261,11 @@ describe("StoreComponent", () => {
   );
 });
 
-describe("StoreMixin", () => {
+describe("StageMixin", () => {
   doTest(
     React.createClass({
       displayName: "Empty",
-      mixins: [StoreMixin],
+      mixins: [StageMixin],
 
       render() {
         return null;
@@ -273,7 +273,7 @@ describe("StoreMixin", () => {
     }),
     React.createClass({
       displayName: "Simple",
-      mixins: [StoreMixin],
+      mixins: [StageMixin],
 
       getInitialState() {
         return {value: 0};
@@ -285,8 +285,8 @@ describe("StoreMixin", () => {
     }),
     React.createClass({
       displayName: "WithValuePath",
-      mixins: [StoreMixin],
-      storeValuePath: "store",
+      mixins: [StageMixin],
+      stageValuePath: "stage",
 
       render() {
         return <div><span ref="child">Hello!</span></div>;
@@ -294,8 +294,8 @@ describe("StoreMixin", () => {
     }),
     React.createClass({
       displayName: "WithValuePath2",
-      mixins: [StoreMixin],
-      storeValuePath: "s.t.o.r.e",
+      mixins: [StageMixin],
+      stageValuePath: "s.t.o.r.e",
 
       render() {
         return <div><span ref="child">Hello!</span></div>;

@@ -1,18 +1,18 @@
-import ActionerComponent from "./ActionerComponent";
-import ActionerMixin from "./ActionerMixin";
-import StoreComponent from "./StoreComponent";
-import StoreMixin from "./StoreMixin";
+import AgentComponent from "./AgentComponent";
+import AgentMixin from "./AgentMixin";
+import StageComponent from "./StageComponent";
+import StageMixin from "./StageMixin";
 
 export default {
-  ActionerComponent,
-  ActionerMixin,
-  StoreComponent,
-  StoreMixin
+  AgentComponent,
+  AgentMixin,
+  StageComponent,
+  StageMixin
 };
 
 export {
-  ActionerComponent,
-  ActionerMixin,
-  StoreComponent,
-  StoreMixin
+  AgentComponent,
+  AgentMixin,
+  StageComponent,
+  StageMixin
 };

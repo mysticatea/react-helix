@@ -1,10 +1,10 @@
 import React from "react";
-import Impl from "./store-impl";
+import Impl from "./stage-impl";
 
-export default class StoreComponent extends React.Component {
-  constructor(props, storeValuePath = "") {
+export default class StageComponent extends React.Component {
+  constructor(props, stageValuePath = "") {
     super(props);
-    Impl.initialize(this, storeValuePath);
+    Impl.initialize(this, stageValuePath);
   }
 
   componentDidMount() {
