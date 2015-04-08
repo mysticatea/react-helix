@@ -43,11 +43,11 @@ function doTest(Empty, Simple) {
       container = null;
     });
 
-    it("should have \"requestUpdate\" method.", () => {
-      assert(typeof target.requestUpdate === "function");
+    it("should have \"requestTo\" method.", () => {
+      assert(typeof target.requestTo === "function");
     });
 
-    describe("\"requestUpdate\" should fire an " + EVENT_NAME + " event.", () => {
+    describe("\"requestTo\" should fire an " + EVENT_NAME + " event.", () => {
       let event, listener;
 
       beforeEach(() => {
@@ -63,7 +63,7 @@ function doTest(Empty, Simple) {
       });
 
       it("with no arguments.", () => {
-        target.requestUpdate(increaseValue);
+        target.requestTo(increaseValue);
 
         assert(event instanceof Event);
         assert(event.action === increaseValue);
@@ -71,7 +71,7 @@ function doTest(Empty, Simple) {
       });
 
       it("with an argument.", () => {
-        target.requestUpdate(increaseValue, 777);
+        target.requestTo(increaseValue, 777);
 
         assert(event instanceof Event);
         assert(event.action === increaseValue);
@@ -80,7 +80,7 @@ function doTest(Empty, Simple) {
       });
 
       it("with multiple arguments.", () => {
-        target.requestUpdate(increaseValue, 777, 888);
+        target.requestTo(increaseValue, 777, 888);
 
         assert(event instanceof Event);
         assert(event.action === increaseValue);
@@ -96,7 +96,7 @@ function doTest(Empty, Simple) {
         }
         callback.called = false;
 
-        target.requestUpdate(increaseValue, callback);
+        target.requestTo(increaseValue, callback);
 
         assert(callback.called);
         assert(event instanceof Event);
@@ -111,7 +111,7 @@ function doTest(Empty, Simple) {
         }
         callback.called = false;
 
-        target.requestUpdate(increaseValue, 777, callback);
+        target.requestTo(increaseValue, 777, callback);
 
         assert(callback.called);
         assert(event instanceof Event);

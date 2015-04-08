@@ -49,7 +49,7 @@ function* multiplyValue3timesSlowly(_, k) {
   yield obj => ({value: obj.value * k});
 }
 
-function requestUpdate(element, action, args, callback) {
+function requestTo(element, action, args, callback) {
   const node = React.findDOMNode(element);
   const event = createSentActionEvent(action, args, callback);
   node.dispatchEvent(event);
@@ -103,7 +103,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
 
     describe("should handle " + EVENT_NAME + " events.", () => {
       it("with no arguments.", done => {
-        requestUpdate(target.refs.child, increaseValue, []);
+        requestTo(target.refs.child, increaseValue, []);
         requestAnimationFrame(() => {
           assert(target.state.value === 777);
           done();
@@ -111,7 +111,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("with an argument.", done => {
-        requestUpdate(target.refs.child, increaseValue, [1]);
+        requestTo(target.refs.child, increaseValue, [1]);
         requestAnimationFrame(() => {
           assert(target.state.value === 1);
           done();
@@ -119,7 +119,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("with multiple arguments.", done => {
-        requestUpdate(target.refs.child, increaseValue, [1, 2]);
+        requestTo(target.refs.child, increaseValue, [1, 2]);
         requestAnimationFrame(() => {
           assert(target.state.value === 3);
           done();
@@ -127,7 +127,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("with a callback.", done => {
-        requestUpdate(target.refs.child, increaseValue, [], err => {
+        requestTo(target.refs.child, increaseValue, [], err => {
           assert(err === null);
           assert(target.state.value === 777);
           done();
@@ -135,7 +135,7 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("with a callback and arguments.", done => {
-        requestUpdate(target.refs.child, increaseValue, [1], err => {
+        requestTo(target.refs.child, increaseValue, [1], err => {
           assert(err === null);
           assert(target.state.value === 1);
           done();
@@ -143,16 +143,16 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("action should be able to return promise.", done => {
-        requestUpdate(target.refs.child, increaseValueLater, [3], err => {
+        requestTo(target.refs.child, increaseValueLater, [3], err => {
           assert(err === null);
           assert(target.state.value === 10);
           done();
         });
-        requestUpdate(target.refs.child, increaseValue, [7]);
+        requestTo(target.refs.child, increaseValue, [7]);
       });
 
       it("action should be able to return generator.", done => {
-        requestUpdate(target.refs.child, increaseValue3times, [3], err => {
+        requestTo(target.refs.child, increaseValue3times, [3], err => {
           assert(err === null);
           assert(target.state.value === 9);
           done();
@@ -160,12 +160,12 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
       });
 
       it("action should be able to conbinate promise and generator.", done => {
-        requestUpdate(target.refs.child, multiplyValue3timesSlowly, [2], err => {
+        requestTo(target.refs.child, multiplyValue3timesSlowly, [2], err => {
           assert(err === null);
           assert(target.state.value === 56);
           done();
         });
-        requestUpdate(target.refs.child, increaseValue, [7]);
+        requestTo(target.refs.child, increaseValue, [7]);
       });
     });
   });
@@ -186,9 +186,9 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
     });
 
     it("should handle " + EVENT_NAME + " events.", done => {
-      requestUpdate(target.refs.child, increaseValue, [1], () => {
+      requestTo(target.refs.child, increaseValue, [1], () => {
         assert(target.state.stage.value === 1);
-        requestUpdate(target.refs.child, increaseValue, [2], () => {
+        requestTo(target.refs.child, increaseValue, [2], () => {
           assert(target.state.stage.value === 3);
           done();
         });
@@ -212,9 +212,9 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
     });
 
     it("should handle " + EVENT_NAME + " events.", done => {
-      requestUpdate(target.refs.child, increaseValue, [1], () => {
+      requestTo(target.refs.child, increaseValue, [1], () => {
         assert(target.state.s.t.o.r.e.value === 1);
-        requestUpdate(target.refs.child, increaseValue, [2], () => {
+        requestTo(target.refs.child, increaseValue, [2], () => {
           assert(target.state.s.t.o.r.e.value === 3);
           done();
         });

@@ -1,5 +1,5 @@
 import React from "react";
-import {createSentActionEvent} from "./UpdateRequestEvent";
+import {createSentActionEvent} from "./SentActionEvent";
 
 function invariant(condition, message) {
   if (!condition) {
