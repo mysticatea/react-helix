@@ -14,7 +14,7 @@ export default class AgentComponent extends React.Component {
     }
   }
 
-  requestTo(action /* [, ...args] [, callback] */) {
+  request(action /* [, ...args] [, callback] */) {
     const args = [];
     const lastIndex = arguments.length - 1;
     let callback;
