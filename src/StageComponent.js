@@ -22,4 +22,8 @@ export default class StageComponent extends React.Component {
   componentWillUpdate() {
     Impl.teardownHandler(this);
   }
+
+  filterAction(/* event */) {
+    return true;
+  }
 }

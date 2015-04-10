@@ -75,6 +75,10 @@ function handleSendAction(event) {
   if (event.defaultPrevented) {
     return;
   }
+  if (typeof this.filterAction === "function" && !this.filterAction(event)) {
+    return;
+  }
+  event.stopPropagation();
   event.applyTo(this);
 }
 
