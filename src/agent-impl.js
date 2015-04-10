@@ -1,5 +1,5 @@
 import React from "react";
-import {createSentActionEvent} from "./SentActionEvent";
+import {createSendActionEvent} from "./SendActionEvent";
 
 function invariant(condition, message) {
   if (!condition) {
@@ -17,7 +17,7 @@ export default {
 
   sendAction(component, action, args, callback) {
     const node = React.findDOMNode(component);
-    const event = createSentActionEvent(action, args, callback);
+    const event = createSendActionEvent(action, args, callback);
 
     if (process.env.NODE_ENV !== "production") {
       invariant(node != null, "AgentMixin: requires to be rendered.");

@@ -21,12 +21,12 @@
     "testing:karma": "karma start karma.conf.js --auto-watch --reporters growl,progress"
   },
   "devDependencies": {
-    "babel": "^4.7.16",
-    "babelify": "^5.0.4",
-    "browserify": "^9.0.3",
+    "babel": "^5.0.12",
+    "babelify": "^6.0.2",
+    "browserify": "^9.0.8",
     "envify": "^3.4.0",
     "eslint": "^0.18.0",
-    "eslint-plugin-react": "^1.6.1",
+    "eslint-plugin-react": "^2.1.0",
     "espowerify": "^0.10.0",
     "karma": "^0.12.31",
     "karma-browserify": "^4.0.0",

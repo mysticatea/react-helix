@@ -1,7 +1,7 @@
 import assert from "power-assert";
 import React from "react";
 import {StageComponent, StageMixin} from "../lib/index";
-import {EVENT_NAME, createSentActionEvent} from "../lib/SentActionEvent";
+import {EVENT_NAME, createSendActionEvent} from "../lib/SendActionEvent";
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -49,9 +49,14 @@ function* multiplyValue3timesSlowly(_, k) {
   yield obj => ({value: obj.value * k});
 }
 
+function* promiseInGenerator() {
+  const threeSevens = yield Promise.resolve(777);
+  return obj => ({value: obj.value + threeSevens});
+}
+
 function request(element, action, args, callback) {
   const node = React.findDOMNode(element);
-  const event = createSentActionEvent(action, args, callback);
+  const event = createSendActionEvent(action, args, callback);
   node.dispatchEvent(event);
   event.rejectIfNotHandled();
 }
@@ -166,6 +171,15 @@ function doTest(Empty, Simple, WithValuePath, WithValuePath2) {
           done();
         });
         request(target.refs.child, increaseValue, [7]);
+      });
+
+      it("promises in generators should not set to state.", done => {
+        request(target.refs.child, promiseInGenerator, [], err => {
+          assert(err === null);
+          assert(target.state.value === 780);
+          done();
+        });
+        request(target.refs.child, increaseValue, [3]);
       });
     });
   });

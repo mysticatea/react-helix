@@ -1,7 +1,7 @@
 import assert from "power-assert";
 import React from "react";
 import {AgentComponent, AgentMixin} from "../lib/index";
-import {EVENT_NAME} from "../lib/SentActionEvent";
+import {EVENT_NAME} from "../lib/SendActionEvent";
 
 function increaseValue(obj, amount) {
   return {value: (obj.value || 0) + amount};

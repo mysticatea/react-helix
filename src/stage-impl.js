@@ -1,5 +1,5 @@
 import React from "react";
-import {EVENT_NAME} from "./SentActionEvent";
+import {EVENT_NAME} from "./SendActionEvent";
 
 function invariant(condition, message) {
   if (!condition) {
@@ -71,7 +71,7 @@ this.setState(tmp0, cb2);`;
 }
 
 //------------------------------------------------------------------------------
-function handleSentAction(event) {
+function handleSendAction(event) {
   if (event.defaultPrevented) {
     return;
   }
@@ -109,8 +109,8 @@ export default {
         configurable: true
       },
 
-      stageMixinHandleSentAction: {
-        value: handleSentAction.bind(component),
+      stageMixinHandleSendAction: {
+        value: handleSendAction.bind(component),
         configurable: true
       },
 
@@ -132,7 +132,7 @@ export default {
     if (process.env.NODE_ENV !== "production") {
       invariant(node != null, "StageMixin: requires to be rendered.");
     }
-    node.addEventListener(EVENT_NAME, component.stageMixinHandleSentAction);
+    node.addEventListener(EVENT_NAME, component.stageMixinHandleSendAction);
   },
 
   teardownHandler(component) {
@@ -140,7 +140,7 @@ export default {
     if (node != null) {
       node.removeEventListener(
         EVENT_NAME,
-        component.stageMixinHandleSentAction);
+        component.stageMixinHandleSendAction);
     }
   }
 };

@@ -22,7 +22,29 @@ function isGenerator(x) {
          typeof x.throw === "function";
 }
 
-function callAndSet(component, func, resolve, reject) {
+function printError(error) {
+  // This function is used in (process.env.NODE_ENV !== "production").
+  if (error != null) {
+    console.error(error); //eslint-disable-line no-console
+  }
+}
+
+// A handler that is used if value is not all of undefined, a function, a
+// promise, and a generator.
+// Just it sets the value to the component's stage value.
+function set(component, isInGenerator, value, resolve, reject) {
+  try {
+    component.setStageValue(value, resolve);
+  }
+  catch (err) {
+    reject(err);
+  }
+}
+
+// A handler that is used if value is a function.
+// It calls the function together with the component's stage value.
+// Then set the result to the component's stage value.
+function callAndSet(component, isInGenerator, func, resolve, reject) {
   let result;
   try {
     result = func(component.stageValue);
@@ -31,11 +53,35 @@ function callAndSet(component, func, resolve, reject) {
     reject(error);
     return;
   }
-  setUnified(component, result, resolve, reject);
+  setUnified(component, isInGenerator, result, resolve, reject);
 }
 
-// Process a generator. ping-pong states.
-function advanceToEnd(component, generator, resolve, reject) {
+// A handler that is used if value is a promise.
+// It waits for the promise become fulfilled.
+// Then set the result to the component's stage value.
+// But if is while advancing a generator, it doesn't set to the stage value,
+// just returns the result.
+function waitAndSet(component, isInGenerator, promise, resolve, reject) {
+  const promise2 = promise.then(
+    result => {
+      if (isInGenerator) {
+        resolve(result);
+      }
+      else {
+        setUnified(component, isInGenerator, result, resolve, reject);
+      }
+    },
+    reject
+  );
+
+  if (process.env.NODE_ENV !== "production") {
+    promise2.catch(printError);
+  }
+}
+
+// A handler that is used if value is a generator.
+// Process a generator. ping-pong the component's stage value.
+function advanceToEnd(component, isInGenerator, generator, resolve, reject) {
   onFulfilled(undefined);
 
   function onFulfilled(stageValue) {
@@ -66,52 +112,32 @@ function advanceToEnd(component, generator, resolve, reject) {
 
   function next(ret) {
     if (ret.done) {
-      setUnified(component, ret.value, resolve, reject);
+      setUnified(component, true, ret.value, resolve, reject);
     }
     else {
-      setUnified(component, ret.value, onFulfilled, onRejected);
+      setUnified(component, true, ret.value, onFulfilled, onRejected);
     }
   }
 }
 
-function setUnified(component, value, resolve, reject) {
-  // Ignore undefined.
-  //   e.g. lonly yield, no-return promises.
+// Check type of the value, and handle the value.
+function setUnified(component, isInGenerator, value, resolve, reject) {
   if (value === undefined) {
     resolve(component.stageValue);
+    return;
   }
-  // If value is a function, call it and set the result.
-  // In this case, give the current stage value to the first argument.
-  else if (isFunction(value)) {
-    callAndSet(component, value, resolve, reject);
-  }
-  // If value is a Promise, wait for fulfilled and set the result.
-  else if (isThenable(value)) {
-    value.then(
-      result => setUnified(component, result, resolve, reject),
-      reject
-    );
-  }
-  // If value is a generator, advanced until done.
-  // While advancing, set each yielded value.
-  else if (isGenerator(value)) {
-    advanceToEnd(component, value, resolve, reject);
-  }
-  // Otherwise, set the value.
-  else {
-    component.setStageValue(value, resolve);
-  }
-}
 
-function printError(error) {
-  // This function is used in (process.env.NODE_ENV !== "production").
-  if (error != null) {
-    console.error(error); //eslint-disable-line no-console
-  }
+  const handle =
+    isFunction(value) ? callAndSet :
+    isThenable(value) ? waitAndSet :
+    isGenerator(value) ? advanceToEnd :
+    /* otherwise */ set;
+
+  handle(component, isInGenerator, value, resolve, reject);
 }
 
 /**
- * The event name for `SentActionEvent`.
+ * The event name for `SendActionEvent`.
  * @type {string}
  */
 export const EVENT_NAME = "helix-sent-action";
@@ -120,9 +146,9 @@ export const EVENT_NAME = "helix-sent-action";
  * @param action {function} - A function to transform the state.
  * @param args {any[]} - Information for action.  This value is given to the
  *   second argument of action.
- * @return {SentActionEvent} - The created event object.
+ * @return {SendActionEvent} - The created event object.
  */
-export function createSentActionEvent(action, args, callback) {
+export function createSendActionEvent(action, args, callback) {
   if (process.env.NODE_ENV !== "production") {
     invariant(typeof action === "function", "action should be a function.");
     invariant(Array.isArray(args), "args should be an array.");
@@ -184,6 +210,7 @@ export function createSentActionEvent(action, args, callback) {
 
       setUnified(
         component,
+        false,
         value,
         result => callback && callback(null, result),
         callback);
