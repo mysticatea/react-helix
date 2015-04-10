@@ -1,8 +1,11 @@
 import Impl from "./stage-impl";
 
 export default {
-  componentDidMount() {
+  componentWillMount() {
     Impl.initialize(this, this.stageValuePath || "");
+  },
+
+  componentDidMount() {
     Impl.setupHandler(this);
   },
 
