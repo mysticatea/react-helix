@@ -63,6 +63,9 @@ The action is carried to the root component from detail components by event
 bubbling, then the root component applies the action to its state (= *Model*),
 and triggers view updating.
 
+So, the root component keeps ownership of the application model, and the details 
+components can determine details of updating completely.
+
 That's all.
 
 `react-helix` is a library for Helix, provides two classes (and mixins).
