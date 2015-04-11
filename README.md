@@ -8,7 +8,7 @@ A minimal library for [Flux](http://facebook.github.io/flux)-like architecture.
   - [StageComponent / StageMixin](#stagecomponent--stagemixin)
   - [AgentComponent / AgentMixin](#agentcomponent--agentmixin)
 - [Helix in depth](#helix-in-depth)
-  - [More Actions (Promise / Generator)](#more-actions-promise--generator)
+  - [More Actions (together Promise / Generator)](#more-actions-together-promise--generator)
   - [Nested StageComponent](#nested-stagecomponent)
   - [Server-side Rendering](#server-side-rendering)
 - [Examples](https://github.com/mysticatea/react-helix-examples)
@@ -38,7 +38,8 @@ Distribute changes |                             | Send actions
 ```
 
 Helix inherits Flux's basic concept -- unidirectional data flow.
-And it makes symmetry in the flow in order to simplify entire.
+
+Helix has two symmetric flows:
 
 - *Downward Flow* is to distribute changes via Virtual DOMs (diff & patch).
 - *Upward Flow* is to send actions via Event Bubbling.
@@ -46,17 +47,30 @@ And it makes symmetry in the flow in order to simplify entire.
 Those flows don't depend on outside objects (e.g. Singleton dispatcher).
 Those depend on only its component tree.
 
-Next, Helix defines Action.
-Action is functions that converts to the next world from the previous world.
-Action is *just* functions.
+Helix has three elements:
 
-The root component has the application model as its state.
-When it received actions, then it applies the action to its state, thus view
-updating is triggered.
+* *Model* is immutable data structures.
+* *Action* is domain logics, they are functions that transforms from the
+  previous *Model* to the next *Model*.
+* *View* is appearance, they show the *Model* and send *Action* by user
+  operations.
 
-In this way, we can make models become immutable and provide actions.
+It's important, *Action* is just a function.
 
-Helix is suited to immutable models.
+The action is carried to the root component from detail components by event
+bubbling, then the root component applies the action to its state (= *Model*),
+and triggers view updating.
+
+That's all.
+
+`react-helix` is a library for Helix, provides two classes (and mixins).
+
+- `StageComponent` (or `StageMixin`) has an ability to catch actions that sent
+  from its descendant, and apply the action to its state.
+  This is an implement for the root component.
+- `AgentComponent` (or `AgentMixin`) has an ability to dispatch bubbling events
+  to send actions.
+  This is an implement for detail components.
 
 See Also [Examples](https://github.com/mysticatea/react-helix-examples)
 
@@ -67,30 +81,29 @@ See Also [Examples](https://github.com/mysticatea/react-helix-examples)
 npm install react react-helix
 ```
 
-
 ## Usage
-
-react-helix provides two classes (and mixins).
-
-- `StageComponent` (or `StageMixin`) has an ability to catch actions that sent
-  from its descendant, and apply the action to its state.
-- `AgentComponent` (or `AgentMixin`) has an ability to dispatch bubbling events
-  to send actions.
-
 
 ### StageComponent / StageMixin
 
 ```ts
 declare class StageComponent extends React.Component {
   constructor(props: any, stageValuePath: string = "");
+
   stageValue: any;
-  setStageValue(value: any, callback?: () => void);
-  filterAction(event: SendActionEvent): boolean
+  setStageValue(value: any, callback?: () => void): void;
+
+  filterAction(event: SendActionEvent): boolean;
+
+  // When you would override those methods, must call `super`.
+  componentDidMount(): void;
+  componentWillUnmount(): void;
+  componentWillUpdate(): void;
+  componentDidUpdate(): void;
 }
 
 const StageMixin = {
   stageValue: any;
-  setStageValue(value: any, callback?: () => void);
+  setStageValue(value: any, callback?: () => void): void;
 
   // stageValuePath: string = "";
   //   You can define `stageValuePath` property.
@@ -102,19 +115,15 @@ const StageMixin = {
 };
 ```
 
-> `StageComponent` manages an event handler at `componentDidMount` and
-> `componentWillUnmount`.  When you would override the methods, must call
-> `super`.
-
 #### stageValuePath
 
 `StageComponent` has one parameter `stageValuePath`.
-This string is a path to store value in its state.
+This string is a path to stage value in its state.
 
 For example, when you set `model` to `stageValuePath`, then the component saves
 its stage value into `this.state.model`.
-Other example, when `stageValuePath` is `myapp.model`, then then the component
-saves its stage value into `this.state.myapp.model`.
+Other example, when `stageValuePath` is `myapp.model`, then the component saves
+its stage value into `this.state.myapp.model`.
 
 #### stageValue
 
@@ -130,7 +139,7 @@ saves its stage value into `this.state.myapp.model`.
 
 * `event.action` is the action.
 * `event.arguments` is an array of arguments for the action.
-* If returns `false`, this component ignores the action.
+* If returned `false`, this component ignores the action.
 
 By default, always returns `true`.
 
@@ -140,11 +149,11 @@ By default, always returns `true`.
 ```ts
 declare class AgentComponent extends React.Component {
   constructor(props: any);
-  request(action: (stageValue: any, ...args: any[]) => any, ...args: any[]);
+  request(action: (stageValue: any, ...) => any, ...args: any[]): void;
 }
 
 const AgentMixin = {
-  request(action: (stageValue: any, ...args: any[]) => any, ...args: any[]);
+  request(action: (stageValue: any, ...) => any, ...args: any[]): void;
 };
 ```
 
@@ -155,7 +164,7 @@ const AgentMixin = {
 
 For example,
 
-* Action Definition:
+* [Action Definition](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/action/TodoApp.js#L41-50):
 
   ```js
   export function removeTodoItem(model, id) {
@@ -165,7 +174,7 @@ For example,
   }
   ```
 
-* Send Action:
+* [Send Action](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/view/TodoItem.js#L89-92):
 
   ```js
   onRemoveButtonClick(/*event*/) {
@@ -174,10 +183,14 @@ For example,
   }
   ```
 
+You can replace this method to a spy for unit tests.
+User interactions will trigger this method in the end.
+
+--------------------------------------------------------------------------------
 
 ## Helix in depth
 
-### More Actions (Promise / Generator)
+### More Actions (together Promise / Generator)
 
 react-helix allows actions return a promise or a generator.
 In this case, `StageComponent` treats the return value specially.
@@ -191,16 +204,17 @@ In this case, `StageComponent` treats the return value specially.
 If the return value is a promise, `StageComponent` waits for the promise
 fulfilled, then sets the result to its stage value.
 If the result of the promise is a function, `StageComponent` calls the function
-with its stage value immediately, then sets the result to its stage value.
+with its stage value immediately, and sets the result of the function to its
+stage value.
 
 ```js
 function promiseAction(model) {
   // ↑ This model is a instance at the time of this action was called.
   return hogeAsync()
     .then(function() {
-      // ↓ This currentModel is a instance at the time of this promise became
-      //    fulfilled.
-      return function(currentModel) { ... };
+      // ↓ This model2 is a instance at the time of this promise became
+      //   fulfilled.
+      return function(model2) { ... };
     });
 }
 ```
@@ -212,7 +226,7 @@ While advancing, `StageComponent` treats yielded values.
 
 * If undefined was yielded, just ignores it.
 * If a function was yielded, `StageComponent` calls the function with its stage
-  value immediately, then sets the result to its stage value.
+  value immediately, and sets the result to its stage value.
 * If a promise was yielded, `StageComponent` backs the result of the promise
   (it is similar to [co](https://github.com/tj/co)).
 * If a generator was yielded, it is processed recurcively.
@@ -241,6 +255,8 @@ function* generatorAction(model) {
   }
 }
 ```
+
+The Action with a generator is useful to implement complex business logics.
 
 
 ### Nested StageComponent
@@ -272,8 +288,8 @@ This will allow us to use nested `StageComponent`.
 
 ### Server-side Rendering
 
-Event bubbling to carry actions does not work in server side. (just ignored)
-But, react-helix does not prevent rendering.
+Event bubbling to carry actions does not work in server side.
+But, react-helix does not prevent rendering (maybe. NEEDS TEST).
 
 
 ### Browser Compatibility
