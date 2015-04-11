@@ -1,5 +1,7 @@
 # react-helix
 
+[![npm](https://img.shields.io/npm/v/react-helix.svg)](https://www.npmjs.com/package/react-helix)
+
 A minimal library for [Flux](http://facebook.github.io/flux)-like architecture.
 
 - [Overview](#overview)
