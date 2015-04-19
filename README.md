@@ -20,8 +20,6 @@ A minimal library for [Flux](http://facebook.github.io/flux)-like architecture.
 
 ## Motivation
 
-I aim by this library:
-
 - Makes *Model* to be immutable.
 - Makes the border of *Model* and *View* to be clearly.
 - No boilerplate. Minimal requisite.
@@ -66,7 +64,7 @@ Helix has three elements:
 
 It's important, *Action* is just a function.
 
-### Two Dataflow
+### Two dataflows
 
 Since *Model* is immutable, the root component has ownership of the application model uniquely. But the model will be updated by detail components (they would not know the root component).
 Helix has two symmetric flows as solution of this gap.
@@ -206,6 +204,7 @@ const AgentMixin = {
 
 `request` is a method to send an action.
 `action` is a function.
+`args` is an array of arguments for `action`.
 
 You can replace this method to a spy for unit tests.
 User interactions will trigger this method in the end.
