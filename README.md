@@ -4,7 +4,9 @@
 
 A minimal library for [Flux](http://facebook.github.io/flux)-like architecture.
 
-- [Overview](#overview)
+- [Motivation](#motivation)
+- [Overview Helix](#overview-helix)
+- [Overview react-helix](#overview-react-helix)
 - [Installation](#installation)
 - [Usage](#usage)
   - [StageComponent / StageMixin](#stagecomponent--stagemixin)
@@ -16,7 +18,17 @@ A minimal library for [Flux](http://facebook.github.io/flux)-like architecture.
 - [Examples](https://github.com/mysticatea/react-helix-examples)
 
 
-## Overview
+## Motivation
+
+I aim by this library:
+
+- Makes *Model* to be immutable.
+- Makes the border of *Model* and *View* to be clearly.
+- No boilerplate. Minimal requisite.
+- Doesn't block the server-side rendering.
+
+
+## Overview Helix
 
 ```
                                This has the Application Model
@@ -39,43 +51,71 @@ Distribute changes |                             | Send actions
     ---------------------------------+
 ```
 
-Helix inherits Flux's basic concept -- unidirectional data flow.
+First, I named this Flux-like design. It's Helix.
+This section explains about Helix.
 
-Helix has two symmetric flows:
+Helix inherits the most basic concept of Flux, Unidirectional Data Flow, and provides better way that works immutable data.
 
-- *Downward Flow* is to distribute changes via Virtual DOMs (diff & patch).
-- *Upward Flow* is to send actions via Event Bubbling.
-
-Those flows don't depend on outside objects (e.g. Singleton dispatcher).
-Those depend on only its component tree.
+### Three elements
 
 Helix has three elements:
 
 * *Model* is immutable data structures.
-* *Action* is domain logics, they are functions that transforms from the
-  previous *Model* to the next *Model*.
-* *View* is appearance, they show the *Model* and send *Action* by user
-  operations.
+* *Action* is domain logics, they are just functions that transforms from the previous *Model* to the next *Model*.
+* *View* is appearance, they show the *Model* and send *Action* by user operations.
 
 It's important, *Action* is just a function.
 
-The action is carried to the root component from detail components by event
-bubbling, then the root component applies the action to its state (= *Model*),
-and triggers view updating.
+### Two Dataflow
 
-So, the root component keeps ownership of the application model, and the details 
-components can determine details of updating completely.
+Since *Model* is immutable, the root component has ownership of the application model uniquely. But the model will be updated by detail components (they would not know the root component).
+Helix has two symmetric flows as solution of this gap.
 
-That's all.
+- *Downward Flow* is to distribute changes via Virtual DOMs (diff & patch).
+- *Upward Flow* is to send actions via Event Bubbling.
+
+Let's see the flow of the whole.
+
+When a necessity to update *Model* was occurred by user operations, then a detail component fires a send action event with an *Action* and parameters.  The event carries the action and parameters to the root component via event bubbling. (*Upward Flow*).
+
+The root component has the application model.  When it received a send action event, it takes *Action* and parameters from the event, then it applies the *Action* with the parameters and its model.  The process of updating *View* is triggered by the updating *Model*, the root component distributes changes via Virtual DOMs (Diff & Patch). (*Downward Flow*).
+
+Thus, the root component keeps ownership of the application model, and detail components can determine details of updating completely.  And we don't need boilerplates (e.g. declares constants, registers handlers to Dispatcher/Store, ...), and and it's scalable to increase *Action*s.
+
+
+## Overview react-helix
 
 `react-helix` is a library for Helix, provides two classes (and mixins).
 
-- `StageComponent` (or `StageMixin`) has an ability to catch actions that sent
-  from its descendant, and apply the action to its state.
+- `StageComponent` (or `StageMixin`) has an ability to catch *Action*s that sent
+  from its descendant, and apply the *Action* to its state automatically.
   This is an implement for the root component.
 - `AgentComponent` (or `AgentMixin`) has an ability to dispatch bubbling events
-  to send actions.
+  to send *Action*s.
   This is an implement for detail components.
+
+For example:
+
+* [Action Definition](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/action/TodoApp.js#L41-50):
+
+  ```js
+  export function removeTodoItem(model, id) {
+    return model.withItems(items =>
+      items.filter(item => item.id !== id)
+    );
+  }
+  ```
+
+* [Send Action](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/view/TodoItem.js#L89-92):
+
+  ```js
+  onRemoveButtonClick(/*event*/) {
+    const id = this.props.value.id;
+    this.request(removeTodoItem, id);
+  }
+  ```
+
+That's almost all.
 
 See Also [Examples](https://github.com/mysticatea/react-helix-examples)
 
@@ -166,27 +206,6 @@ const AgentMixin = {
 
 `request` is a method to send an action.
 `action` is a function.
-
-For example,
-
-* [Action Definition](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/action/TodoApp.js#L41-50):
-
-  ```js
-  export function removeTodoItem(model, id) {
-    return model.withItems(items =>
-      items.filter(item => item.id !== id)
-    );
-  }
-  ```
-
-* [Send Action](https://github.com/mysticatea/react-helix-examples/blob/master/src/todos/client/view/TodoItem.js#L89-92):
-
-  ```js
-  onRemoveButtonClick(/*event*/) {
-    const id = this.props.value.id;
-    this.request(removeTodoItem, id);
-  }
-  ```
 
 You can replace this method to a spy for unit tests.
 User interactions will trigger this method in the end.
