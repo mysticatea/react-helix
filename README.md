@@ -76,7 +76,7 @@ Let's see the flow of the whole.
 
 When a necessity to update *Model* was occurred by user operations, then a detail component fires a send action event with an *Action* and parameters.  The event carries the action and parameters to the root component via event bubbling. (*Upward Flow*).
 
-The root component has the application model.  When it received a send action event, it takes *Action* and parameters from the event, then it applies the *Action* with the parameters and its model.  The process of updating *View* is triggered by the updating *Model*, the root component distributes changes via Virtual DOMs (Diff & Patch). (*Downward Flow*).
+The root component has the application model.  When it received a send action event, it takes *Action* and parameters from the event, then it applies the *Action* with the parameters to its model.  The process of updating *View* is triggered by the updating *Model*, the root component distributes changes via Virtual DOMs (Diff & Patch). (*Downward Flow*).
 
 Thus, the root component keeps ownership of the application model, and detail components can determine details of updating completely.  And we don't need boilerplates (e.g. declares constants, registers handlers to Dispatcher/Store, ...), and and it's scalable to increase *Action*s.
 
