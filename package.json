@@ -1,6 +1,6 @@
 {
   "name": "react-helix",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A minimal library for Flux-like architecture.",
   "main": "lib/index.js",
   "files": [
