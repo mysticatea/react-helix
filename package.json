@@ -10,15 +10,16 @@
   "scripts": {
     "clean": "rimraf lib dist",
     "lint": "eslint src",
-    "build": "npm-run-all clean lint build:lib build:dist build:dist-min",
+    "build": "npm-run-all clean lint build:*",
     "build:lib": "babel src --out-dir lib --source-maps-inline",
     "build:dist": "mkdirp dist && browserify lib/index.js --debug --transform [envify --NODE_ENV=development] --external react --standalone react-helix > dist/react-helix.js",
     "build:dist-min": "mkdirp dist && browserify lib/index.js --transform [envify --NODE_ENV=production] --external react --standalone react-helix | uglifyjs - --compress --mangle > dist/react-helix.min.js",
-    "test": "npm-run-all clean lint build:lib test:karma",
+    "test": "npm-run-all lint test:karma",
     "test:karma": "karma start karma.conf.js --single-run",
-    "testing": "npm run clean && npm-run-all --parallel testing:build testing:karma",
-    "testing:build": "babel src --out-dir lib --watch",
-    "testing:karma": "karma start karma.conf.js --auto-watch --reporters growl,progress"
+    "testing": "karma start karma.conf.js --auto-watch --reporters growl,progress"
+  },
+  "peerDependencies": {
+    "react": "^0.13.3"
   },
   "devDependencies": {
     "babel": "^5.4.3",
@@ -39,7 +40,6 @@
     "mocha": "^2.2.5",
     "npm-run-all": "^1.2.5",
     "power-assert": "^0.11.0",
-    "react": "^0.13.3",
     "rimraf": "^2.3.3",
     "uglify-js": "^2.4.21"
   },

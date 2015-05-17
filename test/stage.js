@@ -1,7 +1,7 @@
 import assert from "power-assert";
 import React from "react";
-import {StageComponent, StageMixin} from "../lib/index";
-import {EVENT_NAME, createSendActionEvent} from "../lib/SendActionEvent";
+import {StageComponent, StageMixin} from "../src/index";
+import {EVENT_NAME, createSendActionEvent} from "../src/SendActionEvent";
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
